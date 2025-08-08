@@ -36,8 +36,9 @@ class _HomeScreenState extends State<HomeScreen> {
     return ChangeNotifierProvider.value(
       value: homeViewModel,
       child: Scaffold(
+        backgroundColor: Color(0xFFFFE4B5),
         appBar: AppBar(
-          title: const Text('Brainrot'),
+          title: const Text('brainrot', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
           actions: [
             Consumer<AppViewModel>(
               builder: (context, appViewModel, child) {
@@ -113,140 +114,142 @@ class _HomeScreenState extends State<HomeScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     _buildWelcomeSection(context, homeViewModel),
-                    const SizedBox(height: 24),
+                    // const SizedBox(height: 24),
+                    Divider(),
                     _buildUsageOverview(context, homeViewModel),
-                    const SizedBox(height: 24),
+                    // const SizedBox(height: 12),
+                    Divider(),
                     _buildTopAppsSection(context, homeViewModel),
                     const SizedBox(height: 24),
-                    _buildAllAppsSection(context, homeViewModel),
+                    // _buildAllAppsSection(context, homeViewModel),
                   ],
                 ),
               ),
             );
           },
         ),
-        floatingActionButton: Consumer<HomeViewModel>(
-          builder: (context, homeViewModel, child) {
-            return FloatingActionButton.extended(
-              onPressed: homeViewModel.isLoading 
-                  ? null 
-                  : () => _showUsageActions(context, homeViewModel),
-              icon: const Icon(Icons.analytics),
-              label: const Text('Actions'),
-            );
-          },
-        ),
+        // floatingActionButton: Consumer<HomeViewModel>(
+        //   builder: (context, homeViewModel, child) {
+        //     return FloatingActionButton.extended(
+        //       onPressed: homeViewModel.isLoading 
+        //           ? null 
+        //           : () => _showUsageActions(context, homeViewModel),
+        //       icon: const Icon(Icons.analytics),
+        //       label: const Text('Actions'),
+        //     );
+        //   },
+        // ),
       ),
     );
   }
 
-  void _showUsageActions(BuildContext context, HomeViewModel homeViewModel) {
-    showModalBottomSheet(
-      context: context,
-      builder: (BuildContext context) {
-        return Container(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                'Usage Actions',
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 20),
-              ListTile(
-                leading: const Icon(Icons.refresh, color: Colors.blue),
-                title: const Text('Refresh Data'),
-                subtitle: const Text('Get latest usage information'),
-                onTap: () {
-                  Navigator.of(context).pop();
-                  homeViewModel.refresh();
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.bar_chart, color: Colors.green),
-                title: const Text('View Statistics'),
-                subtitle: const Text('See detailed usage stats'),
-                onTap: () {
-                  Navigator.of(context).pop();
-                  _showUsageStats(context, homeViewModel);
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.warning, color: Colors.orange),
-                title: const Text('Usage Warning'),
-                subtitle: Text(homeViewModel.hasExcessiveScreenTime 
-                    ? 'You have excessive screen time today!'
-                    : 'Your screen time looks healthy'),
-                onTap: () {
-                  Navigator.of(context).pop();
-                  _showUsageWarning(context, homeViewModel);
-                },
-              ),
-              const SizedBox(height: 10),
-            ],
-          ),
-        );
-      },
-    );
-  }
+  // void _showUsageActions(BuildContext context, HomeViewModel homeViewModel) {
+  //   showModalBottomSheet(
+  //     context: context,
+  //     builder: (BuildContext context) {
+  //       return Container(
+  //         padding: const EdgeInsets.all(20),
+  //         child: Column(
+  //           mainAxisSize: MainAxisSize.min,
+  //           children: [
+  //             Text(
+  //               'Usage Actions',
+  //               style: Theme.of(context).textTheme.titleLarge?.copyWith(
+  //                 fontWeight: FontWeight.bold,
+  //               ),
+  //             ),
+  //             const SizedBox(height: 20),
+  //             ListTile(
+  //               leading: const Icon(Icons.refresh, color: Colors.blue),
+  //               title: const Text('Refresh Data'),
+  //               subtitle: const Text('Get latest usage information'),
+  //               onTap: () {
+  //                 Navigator.of(context).pop();
+  //                 homeViewModel.refresh();
+  //               },
+  //             ),
+  //             ListTile(
+  //               leading: const Icon(Icons.bar_chart, color: Colors.green),
+  //               title: const Text('View Statistics'),
+  //               subtitle: const Text('See detailed usage stats'),
+  //               onTap: () {
+  //                 Navigator.of(context).pop();
+  //                 _showUsageStats(context, homeViewModel);
+  //               },
+  //             ),
+  //             ListTile(
+  //               leading: const Icon(Icons.warning, color: Colors.orange),
+  //               title: const Text('Usage Warning'),
+  //               subtitle: Text(homeViewModel.hasExcessiveScreenTime 
+  //                   ? 'You have excessive screen time today!'
+  //                   : 'Your screen time looks healthy'),
+  //               onTap: () {
+  //                 Navigator.of(context).pop();
+  //                 _showUsageWarning(context, homeViewModel);
+  //               },
+  //             ),
+  //             const SizedBox(height: 10),
+  //           ],
+  //         ),
+  //       );
+  //     },
+  //   );
+  // }
 
-  void _showUsageStats(BuildContext context, HomeViewModel homeViewModel) {
-    final stats = homeViewModel.usageStats;
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Usage Statistics'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('Total Apps: ${stats['totalApps']}'),
-              const SizedBox(height: 8),
-              Text('Total Usage: ${homeViewModel.formattedTotalUsage}'),
-              const SizedBox(height: 8),
-              Text('Category: ${homeViewModel.screenTimeCategory}'),
-              const SizedBox(height: 8),
-              if (stats['mostUsedApp'] != null)
-                Text('Most Used: ${(stats['mostUsedApp'] as AppUsageInfo).appName}'),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Close'),
-            ),
-          ],
-        );
-      },
-    );
-  }
+  // void _showUsageStats(BuildContext context, HomeViewModel homeViewModel) {
+  //   final stats = homeViewModel.usageStats;
+  //   showDialog(
+  //     context: context,
+  //     builder: (BuildContext context) {
+  //       return AlertDialog(
+  //         title: const Text('Usage Statistics'),
+  //         content: Column(
+  //           mainAxisSize: MainAxisSize.min,
+  //           crossAxisAlignment: CrossAxisAlignment.start,
+  //           children: [
+  //             Text('Total Apps: ${stats['totalApps']}'),
+  //             const SizedBox(height: 8),
+  //             Text('Total Usage: ${homeViewModel.formattedTotalUsage}'),
+  //             const SizedBox(height: 8),
+  //             Text('Category: ${homeViewModel.screenTimeCategory}'),
+  //             const SizedBox(height: 8),
+  //             if (stats['mostUsedApp'] != null)
+  //               Text('Most Used: ${(stats['mostUsedApp'] as AppUsageInfo).appName}'),
+  //           ],
+  //         ),
+  //         actions: [
+  //           TextButton(
+  //             onPressed: () => Navigator.of(context).pop(),
+  //             child: const Text('Close'),
+  //           ),
+  //         ],
+  //       );
+  //     },
+  //   );
+  // }
 
-  void _showUsageWarning(BuildContext context, HomeViewModel homeViewModel) {
-    final isExcessive = homeViewModel.hasExcessiveScreenTime;
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text(isExcessive ? 'Screen Time Warning' : 'Great Job!'),
-          content: Text(
-            isExcessive 
-                ? 'You\'ve spent ${homeViewModel.formattedTotalUsage} on your phone today. Consider taking a break!'
-                : 'Your screen time of ${homeViewModel.formattedTotalUsage} looks healthy. Keep it up!',
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('OK'),
-            ),
-          ],
-        );
-      },
-    );
-  }
+  // void _showUsageWarning(BuildContext context, HomeViewModel homeViewModel) {
+  //   final isExcessive = homeViewModel.hasExcessiveScreenTime;
+  //   showDialog(
+  //     context: context,
+  //     builder: (BuildContext context) {
+  //       return AlertDialog(
+  //         title: Text(isExcessive ? 'Screen Time Warning' : 'Great Job!'),
+  //         content: Text(
+  //           isExcessive 
+  //               ? 'You\'ve spent ${homeViewModel.formattedTotalUsage} on your phone today. Consider taking a break!'
+  //               : 'Your screen time of ${homeViewModel.formattedTotalUsage} looks healthy. Keep it up!',
+  //         ),
+  //         actions: [
+  //           TextButton(
+  //             onPressed: () => Navigator.of(context).pop(),
+  //             child: const Text('OK'),
+  //           ),
+  //         ],
+  //       );
+  //     },
+  //   );
+  // }
   }
 
   Widget _buildWelcomeSection(BuildContext context, HomeViewModel homeViewModel) {
@@ -254,209 +257,235 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildBrainHealthCalculation(BuildContext context, HomeViewModel homeViewModel) {
-    // Brain health calculation logic
+    // Use the calculated score from ViewModel instead of calculating here
+    final finalScore = homeViewModel.currentScore;
     final totalMinutes = homeViewModel.totalUsage.inMinutes;
     final goalMinutes = 120; // 2 hours goal
     
-    // Calculate impacts
-    double preGoalImpact = 0.0;
-    double postGoalImpact = 0.0;
-    
-    if (totalMinutes <= goalMinutes) {
-      // Under goal - minimal impact
-      preGoalImpact = (totalMinutes / goalMinutes) * 5.0; // Max 5 points deduction
-    } else {
-      // Over goal - heavy impact
-      preGoalImpact = 10.0; // Full pre-goal impact
-      final excessMinutes = totalMinutes - goalMinutes;
-      postGoalImpact = (excessMinutes / 60.0) * 20.0; // 20 points per excess hour
-    }
-    
-    final totalImpact = preGoalImpact + postGoalImpact;
-    final finalScore = (100 - totalImpact).clamp(0.0, 100.0);
-    
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: Column(
-          children: [
-            // Brain icon and title
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
+    return Padding(
+      padding: const EdgeInsets.all(20.0),
+      child: Column(
+        children: [
+          // Mood image instead of brain icon
+          Container(
+            width: 120,
+            height: 120,
+            // decoration: BoxDecoration(
+            //   borderRadius: BorderRadius.circular(60),
+            //   boxShadow: [
+            //     BoxShadow(
+            //       color: _getScoreColor(finalScore).withOpacity(0.3),
+            //       blurRadius: 20,
+            //       spreadRadius: 2,
+            //     ),
+            //   ],
+            // ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(60),
+              child: Image.asset(
+                _getMoodImage(finalScore),
+                width: 120,
+                height: 120,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) {
+                  // Fallback to default brain image if mood image not found
+                  return ClipRRect(
+                    borderRadius: BorderRadius.circular(60),
+                    child: Image.asset(
+                      'assets/images/vui.png', // Default fallback image
+                      width: 120,
+                      height: 120,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error2, stackTrace2) {
+                        // Final fallback to icon if no images work
+                        return Container(
+                          width: 120,
+                          height: 120,
+                          decoration: BoxDecoration(
+                            color: Colors.orange[200],
+                            borderRadius: BorderRadius.circular(60),
+                          ),
+                          child: const Icon(
+                            Icons.psychology,
+                            size: 60,
+                            color: Colors.brown,
+                          ),
+                        );
+                      },
+                    ),
+                  );
+                },
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+          
+          // Mood description
+          Text(
+            _getMoodDescription(finalScore),
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              color: _getScoreColor(finalScore),
+              fontWeight: FontWeight.w500,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 16),
+          
+          // Compact health explanation with info icon
+          // Row(
+          //   mainAxisAlignment: MainAxisAlignment.center,
+          //   children: [
+          //     Text(
+          //       'Brain Health Score Today',
+          //       style: Theme.of(context).textTheme.titleMedium?.copyWith(
+          //         fontWeight: FontWeight.bold,
+          //       ),
+          //     ),
+          //     const SizedBox(width: 8),
+             
+          //   ],
+          // ),
+          const SizedBox(height: 16),
+          
+          // Large score display
+          RichText(
+            text: TextSpan(
+              children: [
+                TextSpan(
+                  text: '${finalScore.toInt()}',
+                  style: Theme.of(context).textTheme.displayLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: _getScoreColor(finalScore),
+                    fontSize: 48,
+                  ),
+                ),
+                // TextSpan(
+                //   text: ' / 100',
+                //   style: Theme.of(context).textTheme.displayLarge?.copyWith(
+                //     fontWeight: FontWeight.bold,
+                //     color: Colors.grey,
+                //     fontSize: 24,
+                //   ),
+                // ),
+                
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+          
+          // Progress bar with percentage
+          Container(
+            width: double.infinity,
+            height: 8,
+            decoration: BoxDecoration(
+              color: Colors.grey[300],
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Stack(
               children: [
                 Container(
-                  width: 80,
-                  height: 80,
+                  width: MediaQuery.of(context).size.width * (finalScore / 100) * 0.85, // Adjust for padding
+                  height: 8,
                   decoration: BoxDecoration(
-                    color: Colors.orange[200],
-                    borderRadius: BorderRadius.circular(40),
-                  ),
-                  child: const Icon(
-                    Icons.psychology,
-                    size: 40,
-                    color: Colors.brown,
+                    color: _getScoreColor(finalScore),
+                    borderRadius: BorderRadius.circular(10),
                   ),
                 ),
+                // Center(
+                //   child: Text(
+                //     '${finalScore.toInt()}%',
+                //     style: const TextStyle(
+                //       color: Colors.white,
+                //       fontWeight: FontWeight.bold,
+                //       fontSize: 10,
+                //     ),
+                //   ),
+                // ),
+                
               ],
             ),
-            const SizedBox(height: 16),
-            
-            Text(
-              'brainrot',
-              style: Theme.of(context).textTheme.headlineLarge?.copyWith(
-                fontWeight: FontWeight.bold,
-                fontSize: 32,
-              ),
-            ),
-            const SizedBox(height: 24),
-            
-            // Compact health explanation with info icon
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  'how is brain health calculated?',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+          ),
+          const SizedBox(height: 16),
+          
+          // Health status indicator
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                decoration: BoxDecoration(
+                  color: _getScoreColor(finalScore).withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: _getScoreColor(finalScore), width: 2),
                 ),
-                const SizedBox(width: 8),
-                GestureDetector(
-                  onTap: () => _showHealthCalculationDetails(context, homeViewModel, totalMinutes, goalMinutes, preGoalImpact, postGoalImpact, finalScore),
-                  child: Container(
-                    padding: const EdgeInsets.all(4),
-                    decoration: BoxDecoration(
-                      color: Colors.grey[300],
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: const Icon(
-                      Icons.help_outline,
-                      size: 20,
-                      color: Colors.grey,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            
-            Text(
-              'your brain health starts at 100 points each day and decreases based on screen time and snoozes.',
-              textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Colors.grey[600],
-              ),
-            ),
-            const SizedBox(height: 24),
-            
-            // Final health score with progress bar
-            Text(
-              'final health score',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 16),
-            
-            // Progress bar
-            Container(
-              width: double.infinity,
-              height: 20,
-              decoration: BoxDecoration(
-                color: Colors.grey[300],
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Stack(
-                children: [
-                  Container(
-                    width: MediaQuery.of(context).size.width * (finalScore / 100) * 0.8, // 0.8 for padding adjustment
-                    height: 20,
-                    decoration: BoxDecoration(
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      _getHealthIcon(finalScore),
                       color: _getScoreColor(finalScore),
-                      borderRadius: BorderRadius.circular(10),
+                      size: 20,
                     ),
-                  ),
-                  Center(
-                    child: Text(
-                      '${finalScore.toInt()}%',
-                      style: const TextStyle(
-                        color: Colors.white,
+                    const SizedBox(width: 8),
+                    Text(
+                      _getHealthStatus(finalScore),
+                      style: TextStyle(
+                        color: _getScoreColor(finalScore),
                         fontWeight: FontWeight.bold,
-                        fontSize: 10,
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
+              const SizedBox(width: 8),
+              GestureDetector(
+                onTap: () => _showHealthCalculationDetails(context, homeViewModel, totalMinutes, goalMinutes, finalScore),
+                child: const Icon(
+                  Icons.help_outline,
+                  size: 20,
+                  color: Colors.grey,
+                ),
+              ),
+            ],
+          ),
+          
+          // Show reset info
+          const SizedBox(height: 16),
+          Text(
+            'Score resets to 100 every day at midnight',
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: Colors.grey[600],
+              fontStyle: FontStyle.italic,
             ),
-            const SizedBox(height: 16),
-            
-            // Large score display
-            RichText(
-              text: TextSpan(
-                children: [
-                  TextSpan(
-                    text: '${finalScore.toInt()}',
-                    style: Theme.of(context).textTheme.displayLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: _getScoreColor(finalScore),
-                      fontSize: 20,
-                    ),
-                  ),
-                  TextSpan(
-                    text: ' / 100',
-                    style: Theme.of(context).textTheme.displayLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: Colors.green,
-                      fontSize: 20,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 16),
-            
-            // Health status indicator
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              decoration: BoxDecoration(
-                color: _getScoreColor(finalScore).withOpacity(0.1),
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: _getScoreColor(finalScore), width: 2),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    _getHealthIcon(finalScore),
-                    color: _getScoreColor(finalScore),
-                    size: 20,
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    _getHealthStatus(finalScore),
-                    style: TextStyle(
-                      color: _getScoreColor(finalScore),
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
+            textAlign: TextAlign.center,
+          ),
+        ],
       ),
     );
   }
 
-  void _showHealthCalculationDetails(BuildContext context, HomeViewModel homeViewModel, int totalMinutes, int goalMinutes, double preGoalImpact, double postGoalImpact, double finalScore) {
+  // Updated method signature to match the new calculation
+  void _showHealthCalculationDetails(BuildContext context, HomeViewModel homeViewModel, int totalMinutes, int goalMinutes, double finalScore) {
+    // Calculate impacts for display
+    double preGoalImpact = 0.0;
+    double postGoalImpact = 0.0;
+    
+    if (totalMinutes <= goalMinutes) {
+      preGoalImpact = (totalMinutes / goalMinutes) * 10.0;
+    } else {
+      preGoalImpact = 10.0;
+      final excessMinutes = totalMinutes - goalMinutes;
+      postGoalImpact = (excessMinutes / 60.0) * 20.0;
+    }
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (BuildContext context) {
         return Container(
-          height: MediaQuery.of(context).size.height * 0.7,
+          height: MediaQuery.of(context).size.height * 0.8,
           decoration: const BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.only(
@@ -482,15 +511,83 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 const SizedBox(height: 20),
                 
-                Text(
-                  'Brain Health Calculation',
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+                // Title with mood image
+                Row(
+                  children: [
+                    Container(
+                      width: 60,
+                      height: 60,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(30),
+                        boxShadow: [
+                          BoxShadow(
+                            color: _getScoreColor(finalScore).withOpacity(0.3),
+                            blurRadius: 10,
+                          ),
+                        ],
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(30),
+                        child: Image.asset(
+                          _getMoodImage(finalScore),
+                          width: 60,
+                          height: 60,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) {
+                            return ClipRRect(
+                              borderRadius: BorderRadius.circular(30),
+                              child: Image.asset(
+                                'assets/images/vui.png', // Default fallback image
+                                width: 60,
+                                height: 60,
+                                fit: BoxFit.cover,
+                                errorBuilder: (context, error2, stackTrace2) {
+                                  return Container(
+                                    width: 60,
+                                    height: 60,
+                                    decoration: BoxDecoration(
+                                      color: Colors.orange[200],
+                                      borderRadius: BorderRadius.circular(30),
+                                    ),
+                                    child: const Icon(
+                                      Icons.psychology,
+                                      size: 30,
+                                      color: Colors.brown,
+                                    ),
+                                  );
+                                },
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Brain Health Calculation',
+                            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          Text(
+                            _getMoodDescription(finalScore),
+                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              color: _getScoreColor(finalScore),
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Your brain health starts at 100 points each day and decreases based on screen time.',
+                  'Your brain health score starts at 100 points each day at midnight and decreases based on screen time.',
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: Colors.grey[600],
                   ),
@@ -501,6 +598,86 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: SingleChildScrollView(
                     child: Column(
                       children: [
+                        // Current status
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: _getScoreColor(finalScore).withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: _getScoreColor(finalScore), width: 2),
+                          ),
+                          child: Column(
+                            children: [
+                              // Mood image in the score display
+                              Container(
+                                width: 80,
+                                height: 80,
+                                margin: const EdgeInsets.only(bottom: 12),
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(40),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: _getScoreColor(finalScore).withOpacity(0.3),
+                                      blurRadius: 10,
+                                    ),
+                                  ],
+                                ),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(40),
+                                  child: Image.asset(
+                                    _getMoodImage(finalScore),
+                                    width: 80,
+                                    height: 80,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (context, error, stackTrace) {
+                                      return ClipRRect(
+                                        borderRadius: BorderRadius.circular(40),
+                                        child: Image.asset(
+                                          'assets/images/vui.png', // Default fallback image
+                                          width: 80,
+                                          height: 80,
+                                          fit: BoxFit.cover,
+                                          errorBuilder: (context, error2, stackTrace2) {
+                                            return Container(
+                                              width: 80,
+                                              height: 80,
+                                              decoration: BoxDecoration(
+                                                color: Colors.orange[200],
+                                                borderRadius: BorderRadius.circular(40),
+                                              ),
+                                              child: const Icon(
+                                                Icons.psychology,
+                                                size: 40,
+                                                color: Colors.brown,
+                                              ),
+                                            );
+                                          },
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                ),
+                              ),
+                              Text(
+                                'Current Score',
+                                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                '${finalScore.toInt()} / 100',
+                                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  color: _getScoreColor(finalScore),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                        
                         // Screen time details
                         _buildCalculationRow('estimated screen time', '${totalMinutes} min (${(totalMinutes / 60).toStringAsFixed(1)} hrs)'),
                         _buildCalculationRow('your goal', '$goalMinutes min (${(goalMinutes / 60).toStringAsFixed(1)} hrs)'),
@@ -508,7 +685,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         const SizedBox(height: 16),
                         
                         if (totalMinutes <= goalMinutes) ...[
-                          _buildCalculationRow('pre-goal impact', '${(totalMinutes / 60).toStringAsFixed(1)} hrs * ${(preGoalImpact / (totalMinutes / 60)).toStringAsFixed(1)}/hr', 
+                          _buildCalculationRow('impact', '${(totalMinutes / 60).toStringAsFixed(1)} hrs * ${(preGoalImpact / (totalMinutes / 60)).toStringAsFixed(1)}/hr', 
                               impact: '-${preGoalImpact.toStringAsFixed(1)} points', impactColor: Colors.red),
                         ] else ...[
                           _buildCalculationRow('pre-goal impact', '${(goalMinutes / 60).toStringAsFixed(1)} hrs * 5.0/hr', 
@@ -518,12 +695,12 @@ class _HomeScreenState extends State<HomeScreen> {
                         ],
                         
                         const Divider(height: 32),
-                        _buildCalculationRow('subtotal', '100 - total impact', 
+                        _buildCalculationRow('final score', '100 - total impact', 
                             impact: '= ${finalScore.toStringAsFixed(1)} points', impactColor: Colors.green),
                             
                         const SizedBox(height: 24),
                         
-                        // Tips section
+                        // Reset info
                         Container(
                           width: double.infinity,
                           padding: const EdgeInsets.all(16),
@@ -537,13 +714,88 @@ class _HomeScreenState extends State<HomeScreen> {
                             children: [
                               Row(
                                 children: [
-                                  Icon(Icons.lightbulb, color: Colors.blue[600], size: 20),
+                                  Icon(Icons.refresh, color: Colors.blue[600], size: 20),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    'Daily Reset:',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.blue[800],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                'Your brain health score automatically resets to 100 points every day at midnight. This gives you a fresh start each day to maintain healthy screen time habits.',
+                                style: TextStyle(color: Colors.blue[700]),
+                              ),
+                            ],
+                          ),
+                        ),
+                        
+                        const SizedBox(height: 16),
+                        
+                        // Mood explanation section
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: Colors.purple[50],
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: Colors.purple[200]!),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Icon(Icons.psychology, color: Colors.purple[600], size: 20),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    'Mood Indicators:',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.purple[800],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                '😊 100-80: Happy & Healthy\n'
+                                '🤔 79-60: Thoughtful & Aware\n'
+                                '😰 59-30: Stressed & Concerned\n'
+                                '😴 29-0: Tired & Overwhelmed',
+                                style: TextStyle(color: Colors.purple[700]),
+                              ),
+                            ],
+                          ),
+                        ),
+                        
+                        const SizedBox(height: 16),
+                        
+                        // Tips section
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: Colors.green[50],
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: Colors.green[200]!),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Icon(Icons.lightbulb, color: Colors.green[600], size: 20),
                                   const SizedBox(width: 8),
                                   Text(
                                     'Tips to improve your score:',
                                     style: TextStyle(
                                       fontWeight: FontWeight.bold,
-                                      color: Colors.blue[800],
+                                      color: Colors.green[800],
                                     ),
                                   ),
                                 ],
@@ -553,8 +805,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                 '• Keep screen time under 2 hours daily\n'
                                 '• Take regular breaks every 30 minutes\n'
                                 '• Use focus modes for important tasks\n'
-                                '• Try digital detox periods',
-                                style: TextStyle(color: Colors.blue[700]),
+                                '• Try digital detox periods\n'
+                                '• Set app time limits',
+                                style: TextStyle(color: Colors.green[700]),
                               ),
                             ],
                           ),
@@ -565,12 +818,25 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 
                 const SizedBox(height: 16),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () => Navigator.of(context).pop(),
-                    child: const Text('Got it!'),
-                  ),
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                          homeViewModel.forceResetScore();
+                        },
+                        child: const Text('Reset Score'),
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: () => Navigator.of(context).pop(),
+                        child: const Text('Got it!'),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -635,69 +901,67 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildUsageOverview(BuildContext context, HomeViewModel homeViewModel) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: Column(
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Total Screen Time',
-                      style: Theme.of(context).textTheme.titleMedium,
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      homeViewModel.formattedTotalUsage,
-                      style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: homeViewModel.screenTimeCategoryColor,
-                      ),
-                    ),
-                  ],
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: homeViewModel.screenTimeCategoryColor.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Text(
-                    homeViewModel.screenTimeCategory,
-                    style: TextStyle(
+    return Padding(
+      padding: const EdgeInsets.all(20.0),
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Text(
+                  //   'Total Screen Time',
+                  //   style: Theme.of(context).textTheme.titleMedium,
+                  // ),
+                  // const SizedBox(height: 4),
+                  Text(
+                    homeViewModel.formattedTotalUsage,
+                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
                       color: homeViewModel.screenTimeCategoryColor,
-                      fontWeight: FontWeight.w600,
                     ),
                   ),
+                ],
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: homeViewModel.screenTimeCategoryColor.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(20),
                 ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                _buildStatItem(
-                  context,
-                  'Apps Used',
-                  '${homeViewModel.appUsageList.length}',
-                  Icons.apps,
+                child: Text(
+                  homeViewModel.screenTimeCategory,
+                  style: TextStyle(
+                    color: homeViewModel.screenTimeCategoryColor,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
-                _buildStatItem(
-                  context,
-                  'Most Used',
-                  homeViewModel.topApps.isNotEmpty 
-                      ? homeViewModel.topApps.first.appName
-                      : 'None',
-                  Icons.star,
-                ),
-              ],
-            ),
-          ],
-        ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              _buildStatItem(
+                context,
+                'Apps Used',
+                '${homeViewModel.appUsageList.length}',
+                Icons.apps,
+              ),
+              _buildStatItem(
+                context,
+                'Most Used',
+                homeViewModel.topApps.isNotEmpty 
+                    ? homeViewModel.topApps.first.appName
+                    : 'None',
+                Icons.star,
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
@@ -745,88 +1009,85 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildAllAppsSection(BuildContext context, HomeViewModel homeViewModel) {
-    if (homeViewModel.appUsageList.isEmpty) {
-      return const SizedBox.shrink();
-    }
+  // Widget _buildAllAppsSection(BuildContext context, HomeViewModel homeViewModel) {
+  //   if (homeViewModel.appUsageList.isEmpty) {
+  //     return const SizedBox.shrink();
+  //   }
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'All Apps',
-          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        const SizedBox(height: 12),
-        ...homeViewModel.appUsageList.map(
-          (app) => _buildAppUsageTile(context, app, homeViewModel),
-        ),
-      ],
-    );
-  }
+  //   return Column(
+  //     crossAxisAlignment: CrossAxisAlignment.start,
+  //     children: [
+  //       Text(
+  //         'All Apps',
+  //         style: Theme.of(context).textTheme.titleLarge?.copyWith(
+  //           fontWeight: FontWeight.bold,
+  //         ),
+  //       ),
+  //       const SizedBox(height: 12),
+  //       ...homeViewModel.appUsageList.map(
+  //         (app) => _buildAppUsageTile(context, app, homeViewModel),
+  //       ),
+  //     ],
+  //   );
+  // }
 
   Widget _buildAppUsageTile(BuildContext context, AppUsageInfo app, HomeViewModel homeViewModel) {
     final percentage = homeViewModel.getUsagePercentage(app);
     final color = homeViewModel.getUsageColor(app);
 
-    return Card(
-      margin: const EdgeInsets.only(bottom: 8),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Row(
-          children: [
-            Container(
-              width: 48,
-              height: 48,
-              decoration: BoxDecoration(
-                color: color.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(
-                _getAppIcon(app.packageName),
-                color: color,
-                size: 24,
-              ),
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Row(
+        children: [
+          Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(12),
             ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    app.appName,
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    app.formattedUsage,
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Colors.grey[600],
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  LinearProgressIndicator(
-                    value: percentage / 100,
-                    backgroundColor: Colors.grey[300],
-                    valueColor: AlwaysStoppedAnimation<Color>(color),
-                  ),
-                ],
-              ),
+            child: Icon(
+              _getAppIcon(app.packageName),
+              color: color,
+              size: 24,
             ),
-            const SizedBox(width: 16),
-            Text(
-              '${percentage.toStringAsFixed(1)}%',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                fontWeight: FontWeight.w600,
-                color: color,
-              ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  app.appName,
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  app.formattedUsage,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: Colors.grey[600],
+                  ),
+                ),
+                const SizedBox(height: 8),
+                LinearProgressIndicator(
+                  value: percentage / 100,
+                  backgroundColor: Colors.grey[300],
+                  valueColor: AlwaysStoppedAnimation<Color>(color),
+                ),
+              ],
             ),
-          ],
-        ),
+          ),
+          const SizedBox(width: 16),
+          Text(
+            '${percentage.toStringAsFixed(1)}%',
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              fontWeight: FontWeight.w600,
+              color: color,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -848,6 +1109,22 @@ class _HomeScreenState extends State<HomeScreen> {
     };
 
     return iconMap[packageName] ?? Icons.apps;
+  }
+
+  // Get mood image based on score
+  String _getMoodImage(double score) {
+    if (score >= 80) return 'assets/images/vui.png';        // 100-80: Vui
+    if (score >= 60) return 'assets/images/suynghi.png';    // 79-60: Suy nghĩ
+    if (score >= 30) return 'assets/images/cangthang.png';  // 59-30: Căng thẳng
+    return 'assets/images/buonngu.png';                     // 29-0: Buồn ngủ
+  }
+
+  // Get mood description based on score
+  String _getMoodDescription(double score) {
+    if (score >= 80) return 'Excellent! You\'re doing great! 😊';
+    if (score >= 60) return 'Good, but room for improvement 🤔';
+    if (score >= 30) return 'Be careful with your screen time 😰';
+    return 'Time for a digital detox! 😴';
   }
 
 
