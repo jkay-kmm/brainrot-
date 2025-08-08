@@ -1,6 +1,7 @@
 package com.example.brainrot
 
 import android.app.AppOpsManager
+import android.app.usage.UsageEvents
 import android.app.usage.UsageStats
 import android.app.usage.UsageStatsManager
 import android.content.Context
@@ -12,9 +13,11 @@ import android.provider.Settings
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
+import java.util.*
+import kotlin.collections.HashMap
 
 class MainActivity : FlutterActivity() {
-    private val CHANNEL = "app_usage_channel"
+    private val CHANNEL = "com.example.brainrot/usage"
     
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
@@ -29,10 +32,27 @@ class MainActivity : FlutterActivity() {
                     result.success(true)
                 }
                 "getUsageStats" -> {
-                    val startTime = call.argument<Long>("startTime") ?: 0L
-                    val endTime = call.argument<Long>("endTime") ?: System.currentTimeMillis()
-                    val usageStats = getUsageStats(startTime, endTime)
-                    result.success(usageStats)
+                    val usageData = getTodayUsageStats()
+                    result.success(usageData)
+                }
+                "refreshUsageStats" -> {
+                    // Force refresh by getting fresh data
+                    val usageData = getTodayUsageStats()
+                    result.success(usageData)
+                }
+                "getCurrentTimeInfo" -> {
+                    val currentTime = System.currentTimeMillis()
+                    val calendar = Calendar.getInstance()
+                    calendar.timeInMillis = currentTime
+                    
+                    result.success(mapOf(
+                        "currentTime" to currentTime,
+                        "hour" to calendar.get(Calendar.HOUR_OF_DAY),
+                        "minute" to calendar.get(Calendar.MINUTE),
+                        "day" to calendar.get(Calendar.DAY_OF_MONTH),
+                        "month" to calendar.get(Calendar.MONTH) + 1,
+                        "year" to calendar.get(Calendar.YEAR)
+                    ))
                 }
                 else -> {
                     result.notImplemented()
@@ -42,73 +62,71 @@ class MainActivity : FlutterActivity() {
     }
     
     private fun hasUsageStatsPermission(): Boolean {
-        return try {
-            val appOpsManager = getSystemService(Context.APP_OPS_SERVICE) as AppOpsManager
-            val mode = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                appOpsManager.unsafeCheckOpNoThrow(
-                    AppOpsManager.OPSTR_GET_USAGE_STATS,
-                    android.os.Process.myUid(),
-                    packageName
-                )
-            } else {
-                @Suppress("DEPRECATION")
-                appOpsManager.checkOpNoThrow(
-                    AppOpsManager.OPSTR_GET_USAGE_STATS,
-                    android.os.Process.myUid(),
-                    packageName
-                )
-            }
-            mode == AppOpsManager.MODE_ALLOWED
-        } catch (e: Exception) {
-            false
-        }
+        val appOps = getSystemService(Context.APP_OPS_SERVICE) as AppOpsManager
+        val mode = appOps.checkOpNoThrow(
+            AppOpsManager.OPSTR_GET_USAGE_STATS,
+            android.os.Process.myUid(),
+            packageName
+        )
+        return mode == AppOpsManager.MODE_ALLOWED
     }
     
     private fun requestUsageStatsPermission() {
         val intent = Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS)
+        intent.data = android.net.Uri.parse("package:$packageName")
         startActivity(intent)
     }
     
-    private fun getUsageStats(startTime: Long, endTime: Long): List<Map<String, Any>> {
+    private fun getTodayUsageStats(): List<Map<String, Any>> {
         if (!hasUsageStatsPermission()) {
             return emptyList()
         }
-        
+
         val usageStatsManager = getSystemService(Context.USAGE_STATS_SERVICE) as UsageStatsManager
-        val usageStatsList = usageStatsManager.queryUsageStats(
+        val packageManager = packageManager
+
+        // Get today's start and end time
+        val calendar = Calendar.getInstance()
+        val currentTime = System.currentTimeMillis()
+        
+        // Reset to start of today (00:00:00)
+        calendar.timeInMillis = currentTime
+        calendar.set(Calendar.HOUR_OF_DAY, 0)
+        calendar.set(Calendar.MINUTE, 0)
+        calendar.set(Calendar.SECOND, 0)
+        calendar.set(Calendar.MILLISECOND, 0)
+        val startTime = calendar.timeInMillis
+
+        // Use INTERVAL_DAILY for today's data
+        val usageStats = usageStatsManager.queryUsageStats(
             UsageStatsManager.INTERVAL_DAILY,
             startTime,
-            endTime
+            currentTime
         )
-        
+
         val result = mutableListOf<Map<String, Any>>()
-        
-        for (usageStats in usageStatsList) {
-            if (usageStats.totalTimeInForeground > 0) {
-                val appName = getAppName(usageStats.packageName)
-                result.add(mapOf(
-                    "packageName" to usageStats.packageName,
-                    "appName" to appName,
-                    "totalTimeInForeground" to usageStats.totalTimeInForeground,
-                    "firstTimeStamp" to usageStats.firstTimeStamp,
-                    "lastTimeStamp" to usageStats.lastTimeStamp,
-                    "lastTimeUsed" to usageStats.lastTimeUsed
-                ))
+
+        for (usageStat in usageStats) {
+            // Only include apps with at least 1 minute of usage today
+            if (usageStat.totalTimeInForeground > 60000 && usageStat.lastTimeUsed >= startTime) {
+                try {
+                    val appInfo = packageManager.getApplicationInfo(usageStat.packageName, 0)
+                    val appName = packageManager.getApplicationLabel(appInfo).toString()
+                    
+                    result.add(mapOf(
+                        "packageName" to usageStat.packageName,
+                        "appName" to appName,
+                        "usageTimeMillis" to usageStat.totalTimeInForeground,
+                        "lastTimeUsed" to usageStat.lastTimeUsed,
+                        "firstTimeStamp" to usageStat.firstTimeStamp
+                    ))
+                } catch (e: PackageManager.NameNotFoundException) {
+                    // App might be uninstalled, skip
+                }
             }
         }
-        
-        return result.sortedByDescending { 
-            (it["totalTimeInForeground"] as Long) 
-        }
-    }
-    
-    private fun getAppName(packageName: String): String {
-        return try {
-            val packageManager = packageManager
-            val applicationInfo = packageManager.getApplicationInfo(packageName, 0)
-            packageManager.getApplicationLabel(applicationInfo).toString()
-        } catch (e: PackageManager.NameNotFoundException) {
-            packageName
-        }
+
+        // Sort by usage time descending
+        return result.sortedByDescending { it["usageTimeMillis"] as Long }
     }
 }

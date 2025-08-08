@@ -133,6 +133,11 @@ class HomeViewModel extends ChangeNotifier {
     await _loadUsage(() => _appUsageService.getTodayUsage());
   }
 
+  /// Force refresh today's usage data (clears cache)
+  Future<void> refreshTodayUsage() async {
+    await _loadUsage(() => _appUsageService.refreshTodayUsage());
+  }
+
   /// Load app usage data for a specific date range
   Future<void> loadUsageInRange(DateTime startTime, DateTime endTime) async {
     await _loadUsage(() => _appUsageService.getUsageInRange(startTime, endTime));
@@ -180,9 +185,9 @@ class HomeViewModel extends ChangeNotifier {
     }
   }
 
-  /// Refresh current data
+  /// Refresh current data (force refresh with cache clear)
   Future<void> refresh() async {
-    await loadTodayUsage();
+    await refreshTodayUsage();
   }
 
   /// Force reset score to 100 (for testing or manual reset)
