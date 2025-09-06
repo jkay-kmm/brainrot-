@@ -1,7 +1,7 @@
 import 'package:go_router/go_router.dart';
 import 'package:flutter/material.dart';
 
-import '../../view/screens/home_screen.dart';
+import '../../view/screens/main_screen.dart';
 import '../../view/screens/splash_screen.dart';
 
 class AppRoutes {
@@ -21,33 +21,30 @@ class AppRoutes {
       GoRoute(
         path: home,
         name: 'home',
-        builder: (context, state) => const HomeScreen(),
+        builder: (context, state) => const MainScreen(),
       ),
       // Add more routes here as needed
     ],
-    errorBuilder: (context, state) => Scaffold(
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(
-              Icons.error_outline,
-              size: 64,
-              color: Colors.red,
+    errorBuilder:
+        (context, state) => Scaffold(
+          body: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.error_outline, size: 64, color: Colors.red),
+                const SizedBox(height: 16),
+                Text(
+                  'Page not found: ${state.matchedLocation}',
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
+                const SizedBox(height: 16),
+                ElevatedButton(
+                  onPressed: () => context.go(home),
+                  child: const Text('Go Home'),
+                ),
+              ],
             ),
-            const SizedBox(height: 16),
-            Text(
-              'Page not found: ${state.matchedLocation}',
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: () => context.go(home),
-              child: const Text('Go Home'),
-            ),
-          ],
+          ),
         ),
-      ),
-    ),
   );
 }

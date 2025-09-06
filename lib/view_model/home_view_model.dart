@@ -3,9 +3,11 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../data/model/app_usage_info.dart';
 import '../data/services/real_app_usage_service.dart';
+import '../data/services/daily_mood_service.dart';
 
 class HomeViewModel extends ChangeNotifier {
   final RealAppUsageService _appUsageService = RealAppUsageService();
+  final DailyMoodService _moodService = DailyMoodService();
 
   List<AppUsageInfo> _appUsageList = [];
   bool _isLoading = false;
@@ -25,7 +27,7 @@ class HomeViewModel extends ChangeNotifier {
   String get formattedTotalUsage {
     final hours = _totalUsage.inHours;
     final minutes = _totalUsage.inMinutes.remainder(60);
-    
+
     if (hours > 0) {
       return '${hours}h ${minutes}m';
     } else {
@@ -56,33 +58,35 @@ class HomeViewModel extends ChangeNotifier {
   }
 
   // Get screen time category color
-  Color get screenTimeCategoryColor {
-    final minutes = _totalUsage.inMinutes;
-    if (minutes < 60) return Colors.green;
-    if (minutes < 120) return Colors.orange;
-    if (minutes < 180) return Colors.red;
-    return Colors.purple;
-  }
+  // Color get screenTimeCategoryColor {
+  //   final minutes = _totalUsage.inMinutes;
+  //   if (minutes < 60) return Colors.green;
+  //   if (minutes < 120) return Colors.orange;
+  //   if (minutes < 180) return Colors.red;
+  //   return Colors.purple;
+  // }
 
   // Calculate brain health score based on current usage
   double calculateBrainHealthScore() {
     final totalMinutes = _totalUsage.inMinutes;
     final goalMinutes = 120; // 2 hours goal
-    
+
     // Calculate impacts
     double preGoalImpact = 0.0;
     double postGoalImpact = 0.0;
-    
+
     if (totalMinutes <= goalMinutes) {
       // Under goal - minimal impact
-      preGoalImpact = (totalMinutes / goalMinutes) * 10.0; // Max 10 points deduction
+      preGoalImpact =
+          (totalMinutes / goalMinutes) * 10.0; // Max 10 points deduction
     } else {
       // Over goal - heavy impact
       preGoalImpact = 10.0; // Full pre-goal impact
       final excessMinutes = totalMinutes - goalMinutes;
-      postGoalImpact = (excessMinutes / 60.0) * 20.0; // 20 points per excess hour
+      postGoalImpact =
+          (excessMinutes / 60.0) * 20.0; // 20 points per excess hour
     }
-    
+
     final totalImpact = preGoalImpact + postGoalImpact;
     return (100 - totalImpact).clamp(0.0, 100.0);
   }
@@ -92,7 +96,7 @@ class HomeViewModel extends ChangeNotifier {
     final prefs = await SharedPreferences.getInstance();
     final today = DateTime.now();
     final lastResetDateString = prefs.getString('last_reset_date');
-    
+
     if (lastResetDateString != null) {
       _lastResetDate = DateTime.parse(lastResetDateString);
     }
@@ -102,11 +106,11 @@ class HomeViewModel extends ChangeNotifier {
       // Reset score to 100 for new day
       _currentScore = 100.0;
       _lastResetDate = today;
-      
+
       // Save the reset date
       await prefs.setString('last_reset_date', today.toIso8601String());
       await prefs.setDouble('current_score', _currentScore);
-      
+
       print('🌅 New day detected! Score reset to 100');
       notifyListeners();
     } else {
@@ -118,14 +122,17 @@ class HomeViewModel extends ChangeNotifier {
   // Check if two dates are the same day
   bool _isSameDay(DateTime date1, DateTime date2) {
     return date1.year == date2.year &&
-           date1.month == date2.month &&
-           date1.day == date2.day;
+        date1.month == date2.month &&
+        date1.day == date2.day;
   }
 
-  // Save current score
+  // Save current score and mood state
   Future<void> _saveCurrentScore() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setDouble('current_score', _currentScore);
+
+    // Save mood state for today
+    await _moodService.saveDailyMood(DateTime.now(), _currentScore);
   }
 
   /// Load today's app usage data
@@ -140,11 +147,15 @@ class HomeViewModel extends ChangeNotifier {
 
   /// Load app usage data for a specific date range
   Future<void> loadUsageInRange(DateTime startTime, DateTime endTime) async {
-    await _loadUsage(() => _appUsageService.getUsageInRange(startTime, endTime));
+    await _loadUsage(
+      () => _appUsageService.getUsageInRange(startTime, endTime),
+    );
   }
 
   /// Generic method to load usage data
-  Future<void> _loadUsage(Future<List<AppUsageInfo>> Function() loadFunction) async {
+  Future<void> _loadUsage(
+    Future<List<AppUsageInfo>> Function() loadFunction,
+  ) async {
     try {
       _setLoading(true);
       _clearError();
@@ -165,7 +176,7 @@ class HomeViewModel extends ChangeNotifier {
       // Load usage data
       final usageList = await loadFunction();
       _appUsageList = usageList;
-      
+
       // Calculate total usage
       _totalUsage = Duration.zero;
       for (final app in _appUsageList) {
@@ -194,11 +205,14 @@ class HomeViewModel extends ChangeNotifier {
   Future<void> forceResetScore() async {
     _currentScore = 100.0;
     _lastResetDate = DateTime.now();
-    
+
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('last_reset_date', DateTime.now().toIso8601String());
     await prefs.setDouble('current_score', _currentScore);
-    
+
+    // Save mood state for today with reset score
+    await _moodService.saveDailyMood(DateTime.now(), _currentScore);
+
     notifyListeners();
   }
 
